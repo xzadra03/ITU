@@ -1,65 +1,90 @@
 #:kivy 2.0.0
 
 <StartScreen>:
-    Screen:
-        Button:
-            text: "Prihlaseni"
-            size_hint: (.1, .1)
-            pos_hint: {"center_y":.97, "center_x":.9}
-            background_color: (0, 0, 1, 1)
+    MDScreen:
+        MDRoundFlatIconButton:
+            text: "Přihlášení"
+            icon: "account"
+            pos_hint: {"center_y":.96, "center_x":.85}
             on_press:
-                root.manager.transition.duration = 0
+                root.manager.transition.duration = 0.5
                 root.manager.current = 'login_screen'
-        Button:
+        MDRaisedButton:
             text: "Seznam lekcí"
             font_size: 24
             size_hint: (1, .4)
             pos_hint: {'center_y':.6}
-            background_color: "#698996"
+            line_color: 0, 0, 0, 1
             on_press:
-                root.manager.transition.duration = 0
+                root.manager.transition.duration = 0.5
                 root.manager.current = 'lessons_screen'
-        Button:
+        MDRaisedButton:
             text: "Vytvoř lekci"
             font_size: 24
             size_hint: (1, .4)
             pos_hint: {'center_y':.2}
+            line_color: 0, 0, 0, 1
             on_press:
-                root.manager.transition.duration = 0
+                root.manager.transition.duration = 0.5
                 root.manager.current = 'editor_screen'
-        Label:
+        MDLabel:
             text: "Musearn"
-            color: 0, 0, 0, 1
             font_size: 42
             size_hint: (1, .2)
             pos_hint: {'center_y':.9} 
             halign: "center"
  
 <LoginScreen>:
-    Screen:
-        Button:
+    MDScreen:
+        MDRaisedButton:
             text: "Zpět"
             size_hint: (.1, .1)
             pos_hint: {"center_y":.97, "center_x":.9}
-            background_color: (0, 0, 1, 1)
+            on_press:
+                root.manager.transition.duration = 0.5
+                root.manager.current = 'start_screen'
+        MDLabel:
+            text: "Uživatelské jméno"
+            font_size: 32
+            size_hint: (1, .2)
+            pos_hint: {'center_y':.8} 
+            halign: "center"
+        TextInput:
+            size_hint: (.1, .1)
+            pos_hint: {'center_y':.7} 
+            size_hint_x: 20
+        MDLabel:
+            text: "Heslo"
+            font_size: 32
+            size_hint: (1, .2)
+            pos_hint: {'center_y':.5} 
+            halign: "center"
+        TextInput:
+            password: "true"
+            size_hint: (.1, .1)
+            pos_hint: {'center_y':.4}
+            size_hint_x: 20
+        MDRaisedButton:
+            text: "Přihlásit se"
+            size_hint: (.1, .1)
+            pos_hint: {"center_y":.2, "center_x":.5}
             on_press:
                 root.manager.transition.duration = 0
-                root.manager.current = 'start_screen'
+
 
 <EditorScreen>:
-    Screen:
-        Button:
+    MDScreen:
+        MDRaisedButton:
             text: "Zpět"
             size_hint: (.1, .1)
             pos_hint: {"center_y":.97, "center_x":.9}
-            background_color: (0, 0, 1, 1)
             on_press:
                 root.manager.transition.duration = 0
                 root.manager.current = 'start_screen'
 
 <LessonsScreen>:
-    Screen:
-        Button:
+    MDScreen:
+        MDRaisedButton:
             text: "Zpět"
             size_hint: (.1, .1)
             pos_hint: {"center_y":.97, "center_x":.9}
@@ -67,3 +92,16 @@
             on_press:
                 root.manager.transition.duration = 0
                 root.manager.current = 'start_screen'
+        MDLabel:
+            text: "Seznam lekcí"
+            font_size: 32
+            size_hint: (1, .2)
+            pos_hint: {'center_y':.9} 
+            halign: "center"
+        MDLabel:
+            id: filter
+            text: "Filtrovat"
+            font_size: 20
+            size_hint: (1, .1)
+            pos_hint: {'center_y':.7} 
+            halign: "left"

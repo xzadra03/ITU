@@ -1,37 +1,38 @@
 import kivy
 kivy.require('2.0.0')
-from kivy.lang.builder import custom_callback
-from kivy.uix.image import Image
 from kivymd.app import MDApp
-from kivymd.uix.screen import Screen
-from kivymd.icon_definitions import md_icons
+from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
-from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.screenmanager import ScreenManager
+from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDRoundFlatIconButton
+from kivymd.uix.label import MDLabel
+from kivy.uix.textinput import TextInput
+from kivy.uix.checkbox import CheckBox
 
-Builder.load_file("musearn.kv")
+class StartScreen(MDScreen):
+    pass
 
-class StartScreen(Screen):
+class LoginScreen(MDScreen):
+    pass
+
+class EditorScreen(MDScreen):
+    pass
+
+class LessonsScreen(MDScreen):
+    #musim nacist veci z databaze lekci
+    print("ahoj")
     pass
  
-class LoginScreen(Screen):
-    pass
-
-class EditorScreen(Screen):
-    pass
-
-class LessonsScreen(Screen):
-    pass
- 
- 
-screen_manager = ScreenManager()
-screen_manager.add_widget(StartScreen(name="start_screen"))
-screen_manager.add_widget(LoginScreen(name="login_screen"))
-screen_manager.add_widget(EditorScreen(name="editor_screen"))
-screen_manager.add_widget(LessonsScreen(name="lessons_screen"))
-
 
 class Musearn(MDApp):
     def build(self):
+        screen_manager = ScreenManager()
+        Builder.load_file("musearn.kv")
+        screen_manager.add_widget(StartScreen(name="start_screen"))
+        screen_manager.add_widget(LoginScreen(name="login_screen"))
+        screen_manager.add_widget(EditorScreen(name="editor_screen"))
+        screen_manager.add_widget(LessonsScreen(name="lessons_screen"))
         return screen_manager
 
 
