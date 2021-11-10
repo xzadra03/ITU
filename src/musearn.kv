@@ -1,3 +1,16 @@
-MDRaisedButton:
-	text: "ahoj"
-	md_bg_color: 1, 0, 1, 1
+#:kivy 2.0.0
+
+<StartScreen>:
+    BoxLayout:
+        Button:
+            text: "Go to Screen 2"
+            on_press:
+                root.manager.transition.duration = 0
+                root.manager.current = 'login_screen'
+ 
+<LoginScreen>:
+    BoxLayout:
+        Button:
+            text: "Go to Screen 1"
+            on_press:
+                root.manager.current = 'start_screen'
