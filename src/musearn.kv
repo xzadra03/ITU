@@ -1,16 +1,69 @@
 #:kivy 2.0.0
 
 <StartScreen>:
-    BoxLayout:
+    Screen:
         Button:
-            text: "Go to Screen 2"
+            text: "Prihlaseni"
+            size_hint: (.1, .1)
+            pos_hint: {"center_y":.97, "center_x":.9}
+            background_color: (0, 0, 1, 1)
             on_press:
                 root.manager.transition.duration = 0
                 root.manager.current = 'login_screen'
+        Button:
+            text: "Seznam lekcí"
+            font_size: 24
+            size_hint: (1, .4)
+            pos_hint: {'center_y':.6}
+            background_color: "#698996"
+            on_press:
+                root.manager.transition.duration = 0
+                root.manager.current = 'lessons_screen'
+        Button:
+            text: "Vytvoř lekci"
+            font_size: 24
+            size_hint: (1, .4)
+            pos_hint: {'center_y':.2}
+            on_press:
+                root.manager.transition.duration = 0
+                root.manager.current = 'editor_screen'
+        Label:
+            text: "Musearn"
+            color: 0, 0, 0, 1
+            font_size: 42
+            size_hint: (1, .2)
+            pos_hint: {'center_y':.9} 
+            halign: "center"
  
 <LoginScreen>:
-    BoxLayout:
+    Screen:
         Button:
-            text: "Go to Screen 1"
+            text: "Zpět"
+            size_hint: (.1, .1)
+            pos_hint: {"center_y":.97, "center_x":.9}
+            background_color: (0, 0, 1, 1)
             on_press:
+                root.manager.transition.duration = 0
+                root.manager.current = 'start_screen'
+
+<EditorScreen>:
+    Screen:
+        Button:
+            text: "Zpět"
+            size_hint: (.1, .1)
+            pos_hint: {"center_y":.97, "center_x":.9}
+            background_color: (0, 0, 1, 1)
+            on_press:
+                root.manager.transition.duration = 0
+                root.manager.current = 'start_screen'
+
+<LessonsScreen>:
+    Screen:
+        Button:
+            text: "Zpět"
+            size_hint: (.1, .1)
+            pos_hint: {"center_y":.97, "center_x":.9}
+            background_color: (0, 0, 1, 1)
+            on_press:
+                root.manager.transition.duration = 0
                 root.manager.current = 'start_screen'
