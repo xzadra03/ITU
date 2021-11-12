@@ -1,0 +1,3 @@
+[submodule "VUT_ITU_backend"]
+	path = VUT_ITU_backend
+	url = https://github.com/RollLikeRollo/VUT_ITU_backend.git
