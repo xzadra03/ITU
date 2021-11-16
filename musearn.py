@@ -21,7 +21,6 @@ from kivymd.uix.label import MDLabel
 from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
 from VUT_ITU_backend.Database import Database
-from VUT_ITU_backend import *
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.list import MDList, ThreeLineListItem
@@ -137,7 +136,7 @@ class LessonsScreen(MDScreen):
 
     
     def print_data(self):
-        scroll = ScrollView(size_hint_y=.55, pos_hint={"x":0, "y": 0}, do_scroll_x=False, do_scroll_y=True)
+        self.scroll = ScrollView(size_hint_y=.55, pos_hint={"x":0, "y": 0}, do_scroll_x=False, do_scroll_y=True)
         label_lections = MDLabel(text="Seznam lekcí", font_size=45, size_hint=(1, .2), pos_hint= {'center_y':.9}, halign="center")
         self.filter_value = TextInput(size_hint= (.5, .1), pos_hint= {'x': 0,'center_y':.7})
         filter_button = MDRaisedButton(on_press=self.filter, text="filtrovat", pos_hint= {'x': .6,'center_y':.7}, size_hint= (.2, .1))
@@ -150,17 +149,32 @@ class LessonsScreen(MDScreen):
         self.add_widget(self.filter_value)
         self.add_widget(checkbox)
         self.list_view = MDList()
-        scroll.add_widget(self.list_view)
+        self.scroll.add_widget(self.list_view)
         for item in self.lections:
             self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'])
             self.list_view.add_widget(self.lab)
 
-        self.add_widget(scroll)
+        self.add_widget(self.scroll)
 
-
+    #filtrovani
     def filter(self, obj):
-        print("filter: " + self.filter_value.text)
-        self.remove_widget(self.list_view)
+        if self.filter_value.text == "":
+            pass
+        else:
+            self.remove_widget(self.scroll)
+            self.scroll.remove_widget(self.list_view)
+            self.list_view = MDList()
+            for item in self.lections:
+                if item['name'] == self.filter_value.text or item['author'] == self.filter_value.text or item['instrument'] == self.filter_value.text:
+                    self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'])
+                    self.list_view.add_widget(self.lab)
+
+            self.scroll.add_widget(self.list_view)
+            self.add_widget(self.scroll)
+
+    def delete(self):
+        print("mazu")
+        self.remove_widget(self.scroll)
 
 
 #hlavni trida aplikace

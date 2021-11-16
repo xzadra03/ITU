@@ -132,6 +132,7 @@
 
 <LessonsScreen>:
     on_enter: root.print_data()
+    on_leave: root.delete()
     MDRaisedButton:
         text: "Zpět"
         size_hint: (.1, .1)
