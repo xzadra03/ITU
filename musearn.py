@@ -9,8 +9,6 @@
 
 #importy
 from logging import Manager
-from re import L
-from typing import Sized, Text
 import kivy
 kivy.require('2.0.0')
 from kivymd.app import MDApp
@@ -22,7 +20,8 @@ from kivymd.uix.button import MDRoundFlatIconButton
 from kivymd.uix.label import MDLabel
 from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
-from VUT_ITU_backend.Database import *
+from VUT_ITU_backend.Database import Database
+from VUT_ITU_backend import *
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.list import MDList, ThreeLineListItem
@@ -153,7 +152,7 @@ class LessonsScreen(MDScreen):
         self.list_view = MDList()
         scroll.add_widget(self.list_view)
         for item in self.lections:
-            self.lab = ThreeLineListItem(text= item['name'], secondary_text="item['author']", tertiary_text=item['instrument'])
+            self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'])
             self.list_view.add_widget(self.lab)
 
         self.add_widget(scroll)
