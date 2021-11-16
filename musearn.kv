@@ -41,6 +41,7 @@
             size_hint: (.1, .1)
             pos_hint: {"center_y":.97, "center_x":.9}
             on_press:
+                root.clean()
                 root.manager.transition.duration = 0.5
                 root.manager.current = 'start_screen'
         MDLabel:
@@ -50,6 +51,7 @@
             pos_hint: {'center_y':.8} 
             halign: "center"
         TextInput:
+            id: username
             size_hint: (None, .1)
             width: 100
             multiline: False
@@ -62,6 +64,7 @@
             pos_hint: {'center_y':.5} 
             halign: "center"
         TextInput:
+            id: password
             password: "true"
             size_hint: (.1, .1)
             pos_hint: {'center_y':.4}
@@ -71,10 +74,12 @@
             size_hint: (.1, .1)
             pos_hint: {"center_y":.2, "center_x":.5}
             on_press:
-                root.manager.transition.duration = 0
+                root.login()
 
 
 <EditorScreen>:
+    on_enter: root.add()
+    on_leave: root.delete()
     MDScreen:
         MDRaisedButton:
             text: "Zpět"
@@ -84,33 +89,39 @@
                 root.manager.transition.duration = 0
                 root.manager.current = 'start_screen'
         MDRaisedButton:
+            id: label
             text: "Label"
             size_hint: (.25, .15)
             pos_hint: {"y":0, "x":0}
             on_press:
-                root.add()
+                root.add_label()
         MDRaisedButton:
+            id: image
             text: "Img"
             size_hint: (.25, .15)
             pos_hint: {"y":0, "x":.25}
             on_press:
-                root.add()
+                root.add_image()
         MDRaisedButton:
+            id: video
             text: "Video"
             size_hint: (.25, .15)
             pos_hint: {"y":0, "x":.5}
             on_press:
-                root.add()
+                root.add_video()
         MDRaisedButton:
+            id: title
             text: "Title"
             size_hint: (.25, .15)
             pos_hint: {"y":0, "x":.75}
             on_press:
-                root.add()
+                root.add_title()
         MDRaisedButton:
             text: "Ulozit"
             size_hint: (.1, .1)
             pos_hint: {"y":0.9, "center_x":.05}
+            on_press:
+                root.save_lection_popup()
         MDLabel:
             text: "Editor"
             font_size: 32
@@ -128,3 +139,22 @@
         on_press:
             root.manager.transition.duration = 0
             root.manager.current = 'start_screen'
+
+<Content>:
+    orientation: "vertical"
+    spacing: "12dp"
+    size_hint_y: None
+    height: "120dp"
+
+    MDTextField:
+        hint_text: "Nazev lekce:"
+
+    MDTextField:
+        hint_text: "Autor"
+
+    MDTextField:
+        hint_text: "Nastroj"
+
+    MDTextField:
+        hint_text: "Obtiznost"
+

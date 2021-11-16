@@ -1,8 +1,17 @@
+#_________________________________
+#|                                |
+#|    Kivy version of Musearn     |
+#|       author: Jan Zadrapa      |
+#|      project created for ITU   |
+#|         BUT FIT 11/2021        |
+#|                                |
+#|________________________________|
+
+#importy
 from logging import Manager
+from re import L
 from typing import Sized, Text
 import kivy
-from kivymd.uix import screen
-from kivymd.uix import button
 kivy.require('2.0.0')
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
@@ -15,33 +24,111 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
 from VUT_ITU_backend.Database import *
 from kivy.uix.recycleview import RecycleView
-from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.list import MDList, ThreeLineListItem
 from kivy.uix.scrollview import ScrollView
-from kivy.uix.popup import Popup
+from kivymd.uix.dialog import MDDialog
+from kivy.uix.image import Image
 
 #inicializace databaze
 db = Database()
 
+class Content(BoxLayout):
+    pass
+
+#trida startovni obrazovky
 class StartScreen(MDScreen):
     pass
 
+#trida prihlasovaci obrazovky
 class LoginScreen(MDScreen):
-    pass
+    log_user = None
+    reg_user = None
+    username_input = ""
 
-class EditorScreen(MDScreen):
-    added = False
+    def login(self):
+        LoginScreen.username_input = self.ids.username.text
+        password_input = self.ids.password.text
 
-    def add(self):
-        if EditorScreen.added == False:
-            scroll_editor = ScrollView(size_hint_y=.5, pos_hint={"x":0, "y": .2}, do_scroll_x=False, do_scroll_y=True)
-            EditorScreen.added = True
+        if password_input is None or LoginScreen.username_input is None:
+            return
+        if db.doesUserExist(LoginScreen.username_input) is False:
+            if db.createUser(LoginScreen.username_input, password_input) is True:
+                LoginScreen.reg_user = MDLabel(text="Registrovan", font_size=30, size_hint=(1, .2), pos_hint= {'center_y':.1}, halign="center")
+                self.add_widget(LoginScreen.reg_user)
+        else:
+            if db.loginUser(LoginScreen.username_input, password_input) is True:
+                LoginScreen.log_user = MDLabel(text="Prihlasen", font_size=30, size_hint=(1, .2), pos_hint= {'center_y':.1}, halign="center")
+                self.add_widget(LoginScreen.log_user)
+                user = MDLabel(text="uzivatel: " + LoginScreen.username_input, font_size=30, size_hint=(.3, .1), pos_hint= {'center_y':.9}, halign="left")
+                self.add_widget(user)
 
-        lection_list = MDList()
-        scroll_editor.add_widget(lection_list)
-        self.add_widget(scroll_editor)
+    def clean(self):
+        if LoginScreen.log_user is not None:
+            self.remove_widget(LoginScreen.log_user)
+        if LoginScreen.reg_user is not None:
+            self.remove_widget(LoginScreen.reg_user)
         
+        self.ids.username.text = ""
+        self.ids.password.text = ""
 
+#trida pro editor
+class EditorScreen(MDScreen):
+    def add(self):
+        #print("pridavam")
+        self.list_view = MDList()
+        self.scroll_editor = ScrollView(size_hint_y=.6, pos_hint={"x":0, "y": .2}, do_scroll_x=False, do_scroll_y=True)
+        self.scroll_editor.add_widget(self.list_view)
+        self.add_widget(self.scroll_editor)
+
+    def add_label(self):
+        print("Pridej label")
+        self.label_input = TextInput(text = "Label" ,size_hint= (.8, .2), pos_hint= (None, None))
+        #self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1))
+        self.list_view.add_widget(self.label_input)
+        #self.list_view.add_widget(self.delete_button)
+
+    # def delete_label(self):
+    #     print("mazu_label")
+    #     self.remove_widget(self.label_input)
+
+    def add_image(self):
+        print("Pridej image")
+        self.image = Image(source="VUT_ITU_backend/img/melon.jpg")
+       # self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1))
+        self.list_view.add_widget(self.image)
+        #self.list_view.add_widget(self.delete_button)
+
+    def add_video(self):
+        print("Pridej video")
+
+    def add_title(self):
+        print("Pridej title")
+        self.title_input = TextInput(text = "Title" ,size_hint= (1, .2), pos_hint= (None, None))
+        self.list_view.add_widget(self.title_input)
+
+    def delete(self):
+        print("mazu")
+        self.remove_widget(self.scroll_editor)
+
+    def save_lection_popup(self):
+        print("Ukladam")
+        self.dialog = MDDialog(title="Additional info:",
+                type="custom",
+                content_cls=Content(),
+                buttons=[
+                    MDRaisedButton(text="CANCEL"),
+                    MDRaisedButton(text="OK"),
+                ],
+            )
+        self.dialog.open()
+    
+    def save_lection(self):
+        print("Ulozeno")
+        pass
+
+
+#trida pro prohlizeci obrazovku
 class LessonsScreen(MDScreen):
     def __init__(self) -> None:
         super().__init__()
@@ -77,11 +164,12 @@ class LessonsScreen(MDScreen):
         self.remove_widget(self.list_view)
 
 
-
+#hlavni trida aplikace
 class Musearn(MDApp):
     def build(self):
         screen_manager = ScreenManager()
-        Builder.load_file("musearn.kv")
+        #z nejakeho duvodu se mi to s timto radkem nacitalo dvakrat
+        #Builder.load_file("musearn.kv")
         screen_manager.add_widget(StartScreen(name="start_screen"))
         screen_manager.add_widget(LoginScreen(name="login_screen"))
         screen_manager.add_widget(EditorScreen(name="editor_screen"))
