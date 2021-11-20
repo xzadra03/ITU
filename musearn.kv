@@ -140,6 +140,22 @@
         on_press:
             root.manager.transition.duration = 0
             root.manager.current = 'start_screen'
+    CheckBox:
+        pos_hint: {'center_y':.6, 'center_x': .5}
+        size_hint: (.1, .1)
+        on_active: root.filter_user_checked(self.active)
+
+<ViewScreen>:
+    on_enter: root.view()
+    on_leave: root.delete()
+    MDRaisedButton:
+        text: "Zpět"
+        size_hint: (.1, .1)
+        pos_hint: {"center_y":.97, "center_x":.9}
+        on_press:
+            root.manager.transition.duration = 0
+            root.manager.current = 'lessons_screen'
+
 
 <Content>:
     orientation: "vertical"

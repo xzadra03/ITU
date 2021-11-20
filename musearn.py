@@ -8,8 +8,10 @@
 #|________________________________|
 
 #importy
+from functools import partial
 from logging import Manager
 import kivy
+from kivymd.uix import label
 kivy.require('2.0.0')
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
@@ -30,6 +32,8 @@ from kivy.uix.image import Image
 
 #inicializace databaze
 db = Database()
+#inicializace obrazovek
+screen_manager = ScreenManager()
 
 class Content(BoxLayout):
     pass
@@ -125,9 +129,10 @@ class EditorScreen(MDScreen):
         print("Ulozeno")
         pass
 
-
 #trida pro prohlizeci obrazovku
 class LessonsScreen(MDScreen):
+    lection_to_view = ""
+
     def __init__(self) -> None:
         super().__init__()
         self.lections = db.getLections()
@@ -137,29 +142,37 @@ class LessonsScreen(MDScreen):
     
     def print_data(self):
         self.scroll = ScrollView(size_hint_y=.55, pos_hint={"x":0, "y": 0}, do_scroll_x=False, do_scroll_y=True)
-        label_lections = MDLabel(text="Seznam lekcí", font_size=45, size_hint=(1, .2), pos_hint= {'center_y':.9}, halign="center")
+        self.label_lections = MDLabel(text="Seznam lekcí", font_size=45, size_hint=(1, .2), pos_hint= {'center_y':.9}, halign="center")
         self.filter_value = TextInput(size_hint= (.5, .1), pos_hint= {'x': 0,'center_y':.7})
-        filter_button = MDRaisedButton(on_press=self.filter, text="filtrovat", pos_hint= {'x': .6,'center_y':.7}, size_hint= (.2, .1))
-        checkbox = CheckBox(pos_hint= {'center_y':.6, 'center_x': .5}, size_hint=(.1, .1))
-        my_lections = MDLabel(text="Moje lekce", font_size=20, size_hint=(.5, .1), pos_hint= {'center_y':.6}, halign="left")
+        self.filter_button = MDRaisedButton(on_press=self.filter, text="filtrovat", pos_hint= {'x': .6,'center_y':.7}, size_hint= (.2, .1))
+        self.my_lections = MDLabel(text="Moje lekce", font_size=20, size_hint=(.5, .1), pos_hint= {'center_y':.6}, halign="left")
 
-        self.add_widget(filter_button)
-        self.add_widget(label_lections)
-        self.add_widget(my_lections)
+        self.add_widget(self.filter_button)
+        self.add_widget(self.label_lections)
+        self.add_widget(self.my_lections)
         self.add_widget(self.filter_value)
-        self.add_widget(checkbox)
         self.list_view = MDList()
         self.scroll.add_widget(self.list_view)
+        i = 0
         for item in self.lections:
-            self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'])
+            self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'], on_press=partial(self.view_lection, item["name"]))
             self.list_view.add_widget(self.lab)
+            i = i + 1
 
         self.add_widget(self.scroll)
 
     #filtrovani
     def filter(self, obj):
         if self.filter_value.text == "":
-            pass
+            self.remove_widget(self.scroll)
+            self.scroll.remove_widget(self.list_view)
+            self.list_view = MDList()
+            for item in self.lections:
+                self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'], on_press=partial(self.view_lection, item["name"]))
+                self.list_view.add_widget(self.lab)
+
+            self.scroll.add_widget(self.list_view)
+            self.add_widget(self.scroll)
         else:
             self.remove_widget(self.scroll)
             self.scroll.remove_widget(self.list_view)
@@ -172,18 +185,75 @@ class LessonsScreen(MDScreen):
             self.scroll.add_widget(self.list_view)
             self.add_widget(self.scroll)
 
+    def filter_user_checked(self, instance):
+        if instance is True:
+            self.remove_widget(self.scroll)
+            self.scroll.remove_widget(self.list_view)
+            self.list_view = MDList()
+            for item in self.lections:
+                if item['name'] == LoginScreen.username_input:
+                    self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'], on_press=partial(self.view_lection, item["name"]))
+                    self.list_view.add_widget(self.lab)
+
+            self.scroll.add_widget(self.list_view)
+            self.add_widget(self.scroll)
+        else:
+            self.remove_widget(self.scroll)
+            self.scroll.remove_widget(self.list_view)
+            self.list_view = MDList()
+            for item in self.lections:
+                self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'], on_press=partial(self.view_lection, item["name"]))
+                self.list_view.add_widget(self.lab)
+
+            self.scroll.add_widget(self.list_view)
+            self.add_widget(self.scroll)
+
     def delete(self):
-        print("mazu")
+        #print("mazu")
+        self.remove_widget(self.scroll)
+        self.remove_widget(self.filter_button)
+        self.remove_widget(self.label_lections)
+        self.remove_widget(self.my_lections)
+
+
+    def view_lection(self, obj, name):
+        LessonsScreen.lection_to_view = obj
+        screen_manager.current = "view_screen"
+
+
+class ViewScreen(MDScreen):
+    lect = db.getLections()
+    located = False
+
+    def view(self):
+        self.scroll = ScrollView(size_hint_y=.80, pos_hint={"x":0, "y": 0}, do_scroll_x=False, do_scroll_y=True)
+        i = 0
+        for item in ViewScreen.lect:
+            if item['name'] == LessonsScreen.lection_to_view:
+                ViewScreen.located = True
+                id = i
+                print(i)
+                print("Nalezeno")
+            i = i + 1
+
+        if ViewScreen.located is True:
+            print(self.lect[id]["name"])
+            self.label_lect = MDLabel(text=self.lect[id]["name"], size_hint_y=.80, pos_hint={"x":0, "y": 0})
+            self.scroll.add_widget(self.label_lect)
+
+        self.add_widget(self.scroll)
+
+    def delete(self):
         self.remove_widget(self.scroll)
 
 
 #hlavni trida aplikace
 class Musearn(MDApp):
     def build(self):
-        screen_manager = ScreenManager()
         #z nejakeho duvodu se mi to s timto radkem nacitalo dvakrat
         #Builder.load_file("musearn.kv")
         screen_manager.add_widget(StartScreen(name="start_screen"))
+        screen_manager.add_widget(ViewScreen(name="view_screen"))
         screen_manager.add_widget(LoginScreen(name="login_screen"))
         screen_manager.add_widget(EditorScreen(name="editor_screen"))
         ls_screen = LessonsScreen()
