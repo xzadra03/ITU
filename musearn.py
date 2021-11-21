@@ -12,6 +12,7 @@ from functools import partial
 from logging import Manager
 import kivy
 from kivymd.uix import label
+from kivymd.uix import button
 kivy.require('2.0.0')
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
@@ -25,7 +26,7 @@ from kivy.uix.checkbox import CheckBox
 from VUT_ITU_backend.Database import Database
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.boxlayout import BoxLayout
-from kivymd.uix.list import MDList, ThreeLineListItem
+from kivymd.uix.list import MDList, OneLineListItem, ThreeLineListItem
 from kivy.uix.scrollview import ScrollView
 from kivymd.uix.dialog import MDDialog
 from kivy.uix.image import Image
@@ -46,7 +47,8 @@ class StartScreen(MDScreen):
 class LoginScreen(MDScreen):
     log_user = None
     reg_user = None
-    username_input = ""
+    wrong_password = None
+    username_input = "default"
 
     def login(self):
         LoginScreen.username_input = self.ids.username.text
@@ -64,12 +66,17 @@ class LoginScreen(MDScreen):
                 self.add_widget(LoginScreen.log_user)
                 user = MDLabel(text="uzivatel: " + LoginScreen.username_input, font_size=30, size_hint=(.3, .1), pos_hint= {'center_y':.9}, halign="left")
                 self.add_widget(user)
+            else:
+                LoginScreen.wrong_password = MDLabel(text="Spatne heslo", font_size=30, size_hint=(1, .2), pos_hint= {'center_y':.1}, halign="center")
+                self.add_widget(LoginScreen.wrong_password)
 
     def clean(self):
         if LoginScreen.log_user is not None:
             self.remove_widget(LoginScreen.log_user)
         if LoginScreen.reg_user is not None:
             self.remove_widget(LoginScreen.reg_user)
+        if LoginScreen.wrong_password is not None:
+            self.remove_widget(LoginScreen.wrong_password)
         
         self.ids.username.text = ""
         self.ids.password.text = ""
@@ -131,7 +138,7 @@ class EditorScreen(MDScreen):
 
 #trida pro prohlizeci obrazovku
 class LessonsScreen(MDScreen):
-    lection_to_view = ""
+    lection_to_view = {"id": None, "name": None}
 
     def __init__(self) -> None:
         super().__init__()
@@ -179,7 +186,7 @@ class LessonsScreen(MDScreen):
             self.list_view = MDList()
             for item in self.lections:
                 if item['name'] == self.filter_value.text or item['author'] == self.filter_value.text or item['instrument'] == self.filter_value.text:
-                    self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'])
+                    self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'], on_press=partial(self.view_lection, item["name"]))
                     self.list_view.add_widget(self.lab)
 
             self.scroll.add_widget(self.list_view)
@@ -217,34 +224,94 @@ class LessonsScreen(MDScreen):
 
 
     def view_lection(self, obj, name):
-        LessonsScreen.lection_to_view = obj
+        LessonsScreen.lection_to_view["name"] = obj
         screen_manager.current = "view_screen"
 
 
 class ViewScreen(MDScreen):
     lect = db.getLections()
     located = False
+    button_edit = None
+    content = ""
 
     def view(self):
-        self.scroll = ScrollView(size_hint_y=.80, pos_hint={"x":0, "y": 0}, do_scroll_x=False, do_scroll_y=True)
+        self.lect_view = MDList()
+        self.scroll_view = ScrollView(size_hint_y=.8, pos_hint={"x":0, "y": 0}, do_scroll_x=False, do_scroll_y=True)
+        self.scroll_view.add_widget(self.lect_view)
+        self.add_widget(self.scroll_view)
         i = 0
         for item in ViewScreen.lect:
-            if item['name'] == LessonsScreen.lection_to_view:
+            if LessonsScreen.lection_to_view["name"] == item["name"]:
                 ViewScreen.located = True
-                id = i
-                print(i)
-                print("Nalezeno")
+                LessonsScreen.lection_to_view["id"] = i
             i = i + 1
 
         if ViewScreen.located is True:
-            print(self.lect[id]["name"])
-            self.label_lect = MDLabel(text=self.lect[id]["name"], size_hint_y=.80, pos_hint={"x":0, "y": 0})
-            self.scroll.add_widget(self.label_lect)
+            if LoginScreen.username_input == self.lect[int(LessonsScreen.lection_to_view["id"])]["author"]:
+                self.button_edit = MDRaisedButton(text="Editovat", pos_hint={"x": 0, "y":0.9}, on_press=self.change_to_editor)
+                self.add_widget(self.button_edit)
+            
+            for key in ViewScreen.lect:
+                if key["name"] == LessonsScreen.lection_to_view["name"]:
+                    self.label_lection = MDLabel(text=self.lect[int(LessonsScreen.lection_to_view["id"])]["name"], font_size=42, pos_hint={"x": 0, "y":0.9}, size_hint=(1, .1), halign="center")
+                    self.add_widget(self.label_lection)
+                    self.label_lect_author = OneLineListItem(text="Autor: " + self.lect[int(LessonsScreen.lection_to_view["id"])]["author"])
+                    self.lect_view.add_widget(self.label_lect_author)
+                    self.label_lect_instrument = OneLineListItem(text="Nástroj: " + self.lect[int(LessonsScreen.lection_to_view["id"])]["instrument"])
+                    self.lect_view.add_widget(self.label_lect_instrument)
+                    self.label_lect_diff = OneLineListItem(text="Obtížnost: " + str(self.lect[int(LessonsScreen.lection_to_view["id"])]["difficulty"]))
+                    self.lect_view.add_widget(self.label_lect_diff)
+                    self.label_lect_rating = OneLineListItem(text="Hodnocení: " + str(self.lect[int(LessonsScreen.lection_to_view["id"])]["rating"]))
+                    self.lect_view.add_widget(self.label_lect_rating)
+                    self.label_lect_date = OneLineListItem(text="Datum vytvoření:" + str(self.lect[int(LessonsScreen.lection_to_view["id"])]["timestamp"]))
+                    self.lect_view.add_widget(self.label_lect_date)
 
-        self.add_widget(self.scroll)
+                    #ted nacist samotny content lekce
+                    for block in key["blocks"]:
+                        if block["blockType"] == "title":
+                            ViewScreen.content = block["content"]
+                            self.print_title()
+                        elif block["blockType"] == "paragraph":
+                            ViewScreen.content = block["content"]
+                            self.print_paragraph()
+                        elif block["blockType"] == "image":
+                            ViewScreen.content = block["content"]
+                            print(ViewScreen.content)
+                            self.print_image()
+                        elif block["blockType"] == "video":
+                            ViewScreen.content = block["content"]
+                            self.print_video()
+
+                    print("Lekce vytistena")
+
+
+    def print_title(self):
+        self.label_lection_title = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(None, None))
+        self.lect_view.add_widget(self.label_lection_title)
+
+    def print_paragraph(self):
+        self.label_lection_p = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(None, None))
+        self.lect_view.add_widget(self.label_lection_p)
+
+    def print_image(self):
+        pass
+        #self.label_lection_img = Image(text=ViewScreen.content, size_hint=(None, None))
+        #self.lect_view.add_widget(self.label_lection_img)
+
+    def print_video(self):
+        self.label_lection_video = MDLabel(text="Video", size_hint=(None, None))
+        self.lect_view.add_widget(self.label_lection_video)
 
     def delete(self):
-        self.remove_widget(self.scroll)
+        self.remove_widget(self.scroll_view)
+        self.remove_widget(self.label_lection)
+        if self.button_edit is not None:
+            self.remove_widget(self.button_edit)
+
+    def change_to_editor(self, obj):
+        self.delete()
+        screen_manager.current = "editor_screen"
+
 
 
 #hlavni trida aplikace
