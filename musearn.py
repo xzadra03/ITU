@@ -23,18 +23,24 @@ from kivymd.uix.button import MDRoundFlatIconButton
 from kivymd.uix.label import MDLabel
 from kivy.uix.textinput import TextInput
 from kivy.uix.checkbox import CheckBox
-from VUT_ITU_backend.Database import Database
+from VUT_ITU_backend.Database import *
+from VUT_ITU_backend.BlockList import *
+from VUT_ITU_backend.Constants import *
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.list import MDList, OneLineListItem, ThreeLineListItem
 from kivy.uix.scrollview import ScrollView
 from kivymd.uix.dialog import MDDialog
 from kivy.uix.image import Image
+import os
+import inspect
 
 #inicializace databaze
 db = Database()
 #inicializace obrazovek
 screen_manager = ScreenManager()
+#nastaveni cesty k souborum
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
 class Content(BoxLayout):
     pass
@@ -83,6 +89,8 @@ class LoginScreen(MDScreen):
 
 #trida pro editor
 class EditorScreen(MDScreen):
+    section_list = []
+
     def add(self):
         #print("pridavam")
         self.list_view = MDList()
@@ -92,49 +100,92 @@ class EditorScreen(MDScreen):
 
     def add_label(self):
         print("Pridej label")
-        self.label_input = TextInput(text = "Label" ,size_hint= (.8, .2), pos_hint= (None, None))
-        #self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1))
+        self.section_list.append("paragraph")
+        self.label_input = TextInput(text = "Label" ,size_hint= (.6, .2), pos_hint= (None, None))
+        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_label)
         self.list_view.add_widget(self.label_input)
-        #self.list_view.add_widget(self.delete_button)
+        self.list_view.add_widget(self.delete_button)
 
-    # def delete_label(self):
-    #     print("mazu_label")
-    #     self.remove_widget(self.label_input)
+    def delete_label(self, obj):
+        print("mazu_label")
+        self.section_list.remove("paragraph")
+        self.list_view.remove_widget(self.delete_button)
+        self.list_view.remove_widget(self.label_input)
 
     def add_image(self):
         print("Pridej image")
+        self.section_list.append("image")
         self.image = Image(source="VUT_ITU_backend/img/melon.jpg")
-       # self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1))
+        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1))
         self.list_view.add_widget(self.image)
-        #self.list_view.add_widget(self.delete_button)
+        self.list_view.add_widget(self.delete_button)
 
     def add_video(self):
         print("Pridej video")
 
     def add_title(self):
         print("Pridej title")
+        self.section_list.append("title")
         self.title_input = TextInput(text = "Title" ,size_hint= (1, .2), pos_hint= (None, None))
+        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_title)
         self.list_view.add_widget(self.title_input)
+        self.list_view.add_widget(self.delete_button)
+
+    def delete_title(self, obj):
+        print("mazu_title")
+        self.section_list.remove("title")
+        self.list_view.remove_widget(self.delete_button)
+        self.list_view.remove_widget(self.title_input)
 
     def delete(self):
         print("mazu")
         self.remove_widget(self.scroll_editor)
 
     def save_lection_popup(self):
-        print("Ukladam")
-        self.dialog = MDDialog(title="Additional info:",
+        self.dialog = MDDialog(
                 type="custom",
                 content_cls=Content(),
                 buttons=[
-                    MDRaisedButton(text="CANCEL"),
-                    MDRaisedButton(text="OK"),
+                    MDRaisedButton(text="CANCEL", on_press=self.close_dialog),
+                    MDRaisedButton(text="OK", on_press=self.save_lection),
                 ],
             )
         self.dialog.open()
     
-    def save_lection(self):
+    def close_dialog(self, obj):
+        self.dialog.dismiss(force=True)
+
+    def save_lection(self, obj):
+        self.blocks = BlockList()
+
+        for section in EditorScreen.section_list:
+            if section == BlockType.title:
+                print(section)
+                #title = section
+                self.blocks.addBlock("title","Toto je pokus")
+            
+            if section == BlockType.paragraph:
+                print(section)
+            
+            # image section
+            if section == BlockType.image: 
+                pass       
+                #self.blocks.addBlock(section.type.name, str(section.path))
+            
+            # video section
+            if section == BlockType.video:
+                pass
+               # self.blocks.addBlock(section.type.name, str(section.path))
+
+
+
+        lection_name = self.dialog.content_cls.ids.name.text
+        instrument = self.dialog.content_cls.ids.instrument.text
+        difficulty = int(self.dialog.content_cls.ids.difficulty.text)
+        db.createLection(lection_name, LoginScreen.username_input, instrument, difficulty, self.blocks.jsonList)
         print("Ulozeno")
-        pass
+        self.dialog.dismiss(force=True)
+        self.delete()
 
 #trida pro prohlizeci obrazovku
 class LessonsScreen(MDScreen):
@@ -276,30 +327,37 @@ class ViewScreen(MDScreen):
                             self.print_paragraph()
                         elif block["blockType"] == "image":
                             ViewScreen.content = block["content"]
-                            print(ViewScreen.content)
                             self.print_image()
                         elif block["blockType"] == "video":
                             ViewScreen.content = block["content"]
                             self.print_video()
 
-                    print("Lekce vytistena")
+                    #print("Lekce vytistena")
 
 
     def print_title(self):
-        self.label_lection_title = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(None, None))
+        self.label_lection_title = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None))
         self.lect_view.add_widget(self.label_lection_title)
 
     def print_paragraph(self):
-        self.label_lection_p = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(None, None))
+        self.label_lection_p = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None))
         self.lect_view.add_widget(self.label_lection_p)
 
     def print_image(self):
-        pass
-        #self.label_lection_img = Image(text=ViewScreen.content, size_hint=(None, None))
-        #self.lect_view.add_widget(self.label_lection_img)
+        #zkus najit lokalne jinak stahni z databaze
+        if not os.path.exists(currentdir + "/images"):
+            os.mkdir(currentdir + "/images/")
+        file_path = currentdir + "/images/" + str(ViewScreen.content)
+        if not os.path.exists(file_path):
+            db.downloadFile(ViewScreen.content, currentdir + "/images/" + ViewScreen.content)
+    
+        label_lection_test = MDLabel(text="obrazek", size_hint=(1, None))
+        self.image_lection = Image(source=file_path,  allow_stretch=True, keep_ratio=True)
+        self.lect_view.add_widget(label_lection_test)
+        label_lection_test.add_widget(self.image_lection)
 
     def print_video(self):
-        self.label_lection_video = MDLabel(text="Video", size_hint=(None, None))
+        self.label_lection_video = MDLabel(text="Video", size_hint=(1, None))
         self.lect_view.add_widget(self.label_lection_video)
 
     def delete(self):
