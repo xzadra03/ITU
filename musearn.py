@@ -28,7 +28,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.list import MDList, OneLineListItem, ThreeLineListItem
 from kivy.uix.scrollview import ScrollView
 from kivymd.uix.dialog import MDDialog
-from kivy.uix.image import Image
+from kivy.uix.image import AsyncImage, Image
 from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.popup import Popup
@@ -93,13 +93,22 @@ class EditorScreen(MDScreen):
     index = 0
     section_list = {}
 
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        if ViewScreen.edit == 1:
+            self.edit()
+
+    #editace jiz vytvorene lekce
+    def edit(self):
+        print("edituju")
+        self.add
+
+
     def save_value(self, instance, text):
-        print(text)
         EditorScreen.section_list[self.index - 1]['content'] = text
 
-
-
     def add(self):
+        print("ahoj")
         self.list_view = MDList()
         self.scroll_editor = ScrollView(size_hint_y=.6, pos_hint={"x":0, "y": .2}, do_scroll_x=False, do_scroll_y=True)
         self.scroll_editor.add_widget(self.list_view)
@@ -276,6 +285,7 @@ class EditorScreen(MDScreen):
         self.delete()
         screen_manager.current = "start_screen"
 
+
 #trida pro prohlizeci obrazovku
 class LessonsScreen(MDScreen):
     lection_to_view = {"id": None, "name": None}
@@ -370,6 +380,7 @@ class LessonsScreen(MDScreen):
 
 class ViewScreen(MDScreen):
     lect = db.getLections()
+    edit = 0
     located = False
     button_edit = None
     content = ""
@@ -421,15 +432,13 @@ class ViewScreen(MDScreen):
                             ViewScreen.content = block["content"]
                             self.print_video()
 
-                    #print("Lekce vytistena")
-
 
     def print_title(self):
-        self.label_lection_title = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None))
+        self.label_lection_title = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None), line_color=(0,0,0,1), halign="center")
         self.lect_view.add_widget(self.label_lection_title)
 
     def print_paragraph(self):
-        self.label_lection_p = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None))
+        self.label_lection_p = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None), line_color=(0,0,0,1), halign="center")
         self.lect_view.add_widget(self.label_lection_p)
 
     def print_image(self):
@@ -440,14 +449,20 @@ class ViewScreen(MDScreen):
         if not os.path.exists(file_path):
             db.downloadFile(ViewScreen.content, currentdir + "/images/" + ViewScreen.content)
     
-        label_lection_test = MDLabel(text="obrazek", size_hint=(1, None))
-        self.image_lection = Image(source=file_path,  allow_stretch=True, keep_ratio=True)
-        self.lect_view.add_widget(label_lection_test)
-        label_lection_test.add_widget(self.image_lection)
+        self.image_lection = Image(source=file_path, size_hint=(None, None), size=(200, 200), keep_ratio= False)
+        self.lect_view.add_widget(self.image_lection)
+
 
     def print_video(self):
-        self.label_lection_video = MDLabel(text="Video", size_hint=(1, None))
-        self.lect_view.add_widget(self.label_lection_video)
+        if not os.path.exists(currentdir + "/images/"):
+               os.mkdir(currentdir + "/images/")
+        file_path = currentdir + "/images/" + str(ViewScreen.content)
+        if not os.path.exists(file_path):
+            db.downloadFile(ViewScreen.content, currentdir + "/images/" + ViewScreen.content)
+
+        self.image_lection = VideoPlayer(source=file_path, size_hint=(None, None), size=(200, 200))
+        self.lect_view.add_widget(self.image_lection)
+
 
     def delete(self):
         self.remove_widget(self.scroll_view)
@@ -457,7 +472,9 @@ class ViewScreen(MDScreen):
 
     def change_to_editor(self, obj):
         self.delete()
+        ViewScreen.edit = 1
         screen_manager.current = "editor_screen"
+        EditorScreen.edit
 
 
 
