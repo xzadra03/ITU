@@ -124,13 +124,6 @@ class EditorScreen(MDScreen):
     index = 0
     section_list = {}
 
-
-    def save_value(self, instance, text):
-        if self.index > 0:
-            EditorScreen.section_list[self.index - 1]['content'] = text
-        else:
-            EditorScreen.section_list[self.index]['content'] = text
-
     def add(self):
         if ViewScreen.edit == 1:
             self.list_view = MDList()
@@ -144,14 +137,12 @@ class EditorScreen(MDScreen):
                     EditorScreen.section_list[index] = block
                     self.edit_title = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
                     self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_title)
-                    self.edit_title.bind(text = self.save_value)
                     self.list_view.add_widget(self.edit_title)
                     self.list_view.add_widget(self.delete_button)
                 if block["blockType"] == 'paragraph':
                     EditorScreen.section_list[index] = block
                     self.edit_paragraph = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
                     self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_label)
-                    self.edit_paragraph.bind(text = self.save_value)
                     self.list_view.add_widget(self.edit_paragraph)
                     self.list_view.add_widget(self.delete_button)
 
@@ -214,9 +205,8 @@ class EditorScreen(MDScreen):
         self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_label)
         self.list_view.add_widget(self.label_input)
         self.list_view.add_widget(self.delete_button)
-        self.label_input.bind(text = self.save_value)
         EditorScreen.index = EditorScreen.index + 1
-        print(EditorScreen.section_list)
+        #print(EditorScreen.section_list)
 
     def delete_label(self, obj):
         index_to_delete = self.list_view.children.index(obj)
@@ -225,7 +215,7 @@ class EditorScreen(MDScreen):
         del EditorScreen.section_list[index_to_delete]
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.label_input)
-        print(EditorScreen.section_list)
+        #print(EditorScreen.section_list)
 
 
     def choose_file_image(self, obj, filename, event):
@@ -259,7 +249,7 @@ class EditorScreen(MDScreen):
         del EditorScreen.section_list[index_to_delete]
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.image)
-        print(EditorScreen.section_list)
+        #print(EditorScreen.section_list)
 
 
     def choose_file_video(self, obj, filename, event):
@@ -292,7 +282,7 @@ class EditorScreen(MDScreen):
         del EditorScreen.section_list[index_to_delete]
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.video)
-        print(EditorScreen.section_list)
+        #print(EditorScreen.section_list)
 
     def add_title(self):
         print("Pridej title " + str(EditorScreen.index))
@@ -303,10 +293,9 @@ class EditorScreen(MDScreen):
         self.title_input = TextInput(text = "Title" ,size_hint= (.8, .2), pos_hint= (None, None))
         self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_title)
         self.list_view.add_widget(self.title_input)
-        self.title_input.bind(text = self.save_value)
         self.list_view.add_widget(self.delete_button)
         EditorScreen.index = EditorScreen.index + 1
-        print(EditorScreen.section_list)
+        #print(EditorScreen.section_list)
 
     def delete_title(self, obj):
         index_to_delete = self.list_view.children.index(obj)
@@ -315,15 +304,26 @@ class EditorScreen(MDScreen):
         del EditorScreen.section_list[index_to_delete]
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.title_input)
-        print(EditorScreen.section_list)
+        #print(EditorScreen.section_list)
 
     def delete(self):
         self.remove_widget(self.scroll_editor)
 
     def save_lection_popup(self):
-        for section, data in EditorScreen.section_list.items():
-            #print(data)
-            pass
+        leng = int(len(self.list_view.children)/2)
+        i = leng
+
+        #data ze vstupnich poli
+        for data in self.list_view.children:
+            if isinstance(data, Image):
+                continue
+            if isinstance(data, VideoPlayer):
+                continue
+            if data.text != "smazat":
+                i -= 1
+                EditorScreen.section_list[i]['content'] = data.text
+                print(str(EditorScreen.section_list))
+                print(data.text + str(i))
         
         self.dialog = MDDialog(
                 type="custom",
@@ -560,8 +560,8 @@ class ViewScreen(MDScreen):
         if not os.path.exists(file_path):
             db.downloadFile(ViewScreen.content, currentdir + "/images/" + ViewScreen.content)
 
-        self.image_lection = VideoPlayer(source=file_path, size_hint=(None, None), size=(200, 200))
-        self.lect_view.add_widget(self.image_lection)
+        self.video_lection = VideoPlayer(source=file_path, size_hint=(None, None), size=(200, 200))
+        self.lect_view.add_widget(self.video_lection)
 
 
     def delete(self):
