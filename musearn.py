@@ -123,6 +123,7 @@ class EditorScreen(MDScreen):
     filename = ''
     index = 0
     section_list = {}
+    label_index = 0
 
     def add(self):
         if ViewScreen.edit == 1:
@@ -195,27 +196,50 @@ class EditorScreen(MDScreen):
         self.list_view.remove_widget(self.edit_video)
         self.list_view.remove_widget(self.delete_button)
 
-
     def add_label(self):
-        EditorScreen.section_list[self.index] = {}
-        EditorScreen.section_list[self.index]['blockType'] = "paragraph"
-        EditorScreen.section_list[self.index]['content'] = ""
+        EditorScreen.section_list[self.label_index] = {}
+        EditorScreen.section_list[self.label_index]['blockType'] = "paragraph"
+        EditorScreen.section_list[self.label_index]['content'] = ""
 
         self.label_input = TextInput(text = "Label" ,size_hint= (.6, .2), pos_hint= (None, None))
         self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_label)
         self.list_view.add_widget(self.label_input)
         self.list_view.add_widget(self.delete_button)
-        EditorScreen.index = EditorScreen.index + 1
-        #print(EditorScreen.section_list)
+        self.label_index += 1
+        print(EditorScreen.section_list)
+
+
+#     import collections
+# tohle se mi bude hodit
+
+
+# def move_element(odict, thekey, newpos):
+#     odict[thekey] = odict.pop(thekey)
+#     i = 0
+#     for key, value in odict.items():
+#         if key != thekey and i >= newpos:
+#             odict[key] = odict.pop(key)
+#         i += 1
+#     return odict
+
+# queue = collections.OrderedDict()
+
+# queue["animals"] = ["cat", "dog", "fish"]
+# queue["food"] = ["cake", "cheese", "bread"]
+# queue["people"] = ["john", "henry", "mike"]
+# queue["drinks"] = ["water", "coke", "juice"]
+# queue["cars"] = ["astra", "focus", "fiesta"]
+
+# print queue
+
+# queue = move_element(queue, "people", 1)
+
+# print queue
 
     def delete_label(self, obj):
-        index_to_delete = self.list_view.children.index(obj)
-        print("mazu_label " + str(index_to_delete))
-
-        del EditorScreen.section_list[index_to_delete]
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.label_input)
-        #print(EditorScreen.section_list)
+        print(EditorScreen.section_list)
 
 
     def choose_file_image(self, obj, filename, event):
@@ -316,15 +340,20 @@ class EditorScreen(MDScreen):
         #data ze vstupnich poli
         for data in self.list_view.children:
             if isinstance(data, Image):
+                EditorScreen.section_list[leng - i]['content'] = data.source
+                i -= 1
                 continue
             if isinstance(data, VideoPlayer):
+                EditorScreen.section_list[leng - i]['content'] = data.source
+                i -= 1
                 continue
             if data.text != "smazat":
+                EditorScreen.section_list[leng - i]['content'] = data.text
                 i -= 1
-                EditorScreen.section_list[i]['content'] = data.text
-                print(str(EditorScreen.section_list))
-                print(data.text + str(i))
+                continue
         
+
+        print(str(EditorScreen.section_list))
         self.dialog = MDDialog(
                 type="custom",
                 content_cls=Content(),
