@@ -117,20 +117,20 @@ class EditorScreen(MDScreen):
             index = 0
             for block in ViewScreen.lection_to_edit["blocks"]:
                 if block["blockType"] == 'title':
-                    EditorScreen.section_list = block
+                    EditorScreen.section_list[index] = block
                     self.edit_title = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
                     self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_title)
                     self.list_view.add_widget(self.edit_title)
                     self.list_view.add_widget(self.delete_button)
                 if block["blockType"] == 'paragraph':
-                    EditorScreen.section_list = block
+                    EditorScreen.section_list[index] = block
                     self.edit_paragraph = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
                     self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_label)
                     self.list_view.add_widget(self.edit_paragraph)
                     self.list_view.add_widget(self.delete_button)
 
                 if block["blockType"] == 'image' or block["blockType"] == "video":
-                    EditorScreen.section_list = block
+                    EditorScreen.section_list[index] = block
                     #zkus najit lokalne jinak stahni z databaze
                     if not os.path.exists(currentdir + "/images"):
                         os.mkdir(currentdir + "/images/")
@@ -142,17 +142,19 @@ class EditorScreen(MDScreen):
                     
                     if block["blockType"] == "image":
                         self.edit_image = Image(source=file_path, size_hint=(None, None), size=(200, 200), keep_ratio= False)
+                        block["content"] = file_path
                         self.list_view.add_widget(self.edit_image)
                         self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_image)
                         self.list_view.add_widget(self.delete_button)
                     else:
                         self.edit_video = VideoPlayer(source=file_path, size_hint=(None, None), size=(200, 200))
+                        block["content"] = file_path
                         self.list_view.add_widget(self.edit_video)
                         self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_video)
                         self.list_view.add_widget(self.delete_button)
                 
                 index += 1
-                print(str(EditorScreen.section_list))
+                #print(str(EditorScreen.section_list))
         else:
             self.list_view = MDList()
             self.scroll_editor = ScrollView(size_hint_y=.6, pos_hint={"x":0, "y": .2}, do_scroll_x=False, do_scroll_y=True)
@@ -178,9 +180,8 @@ class EditorScreen(MDScreen):
 
 
     def add_label(self):
-        print("Pridej label " + str(EditorScreen.index))
         EditorScreen.section_list[self.index] = {}
-        EditorScreen.section_list[self.index]['name'] = "paragraph"
+        EditorScreen.section_list[self.index]['blockType'] = "paragraph"
         EditorScreen.section_list[self.index]['content'] = ""
 
         self.label_input = TextInput(text = "Label" ,size_hint= (.6, .2), pos_hint= (None, None))
@@ -212,16 +213,14 @@ class EditorScreen(MDScreen):
             self.list_view.add_widget(self.image)
             self.list_view.add_widget(self.delete_button)
             EditorScreen.section_list[self.index] = {}
-            EditorScreen.section_list[self.index]['name'] = "image"
+            EditorScreen.section_list[self.index]['blockType'] = "image"
             EditorScreen.section_list[self.index]['content'] = EditorScreen.filename
             EditorScreen.index = EditorScreen.index + 1
-            print(EditorScreen.section_list)
         else:
             pass
 
 
     def add_image(self):
-        print("Pridej image")
         self.dialog_file = Popup(size_hint = (.8, .8), title='Choose file')
         self.file_chooser = FileChooserListView(on_submit=self.choose_file_image, path=currentdir)
         self.dialog_file.add_widget(self.file_chooser)
@@ -248,15 +247,13 @@ class EditorScreen(MDScreen):
             self.list_view.add_widget(self.video)
             self.list_view.add_widget(self.delete_button)
             EditorScreen.section_list[self.index] = {}
-            EditorScreen.section_list[self.index]['name'] = "video"
+            EditorScreen.section_list[self.index]['blockType'] = "video"
             EditorScreen.section_list[self.index]['content'] = EditorScreen.filename
             EditorScreen.index = EditorScreen.index + 1
-            print(EditorScreen.section_list)
         else:
             pass
 
     def add_video(self):
-        print("Pridej video")
         self.dialog_file = Popup(size_hint = (.8, .8), title='Choose file')
         self.file_chooser = FileChooserListView(on_submit=self.choose_file_video, path=currentdir)
         self.dialog_file.add_widget(self.file_chooser)
@@ -274,7 +271,7 @@ class EditorScreen(MDScreen):
     def add_title(self):
         print("Pridej title " + str(EditorScreen.index))
         EditorScreen.section_list[self.index] = {}
-        EditorScreen.section_list[self.index]['name'] = "title"
+        EditorScreen.section_list[self.index]['blockType'] = "title"
         EditorScreen.section_list[self.index]['content'] = ""
 
         self.title_input = TextInput(text = "Title" ,size_hint= (.8, .2), pos_hint= (None, None))
@@ -298,9 +295,9 @@ class EditorScreen(MDScreen):
         self.remove_widget(self.scroll_editor)
 
     def save_lection_popup(self):
-
         for section, data in EditorScreen.section_list.items():
-            print(data)
+            #print(data)
+            pass
         
         self.dialog = MDDialog(
                 type="custom",
@@ -319,23 +316,24 @@ class EditorScreen(MDScreen):
         self.blocks = BlockList()
 
         for section, data in EditorScreen.section_list.items():
+            print(data)
             #title section
-            if data["name"] == "title":
-                self.blocks.addBlock(data['name'], str(data['content']))
+            if data["blockType"] == "title":
+                self.blocks.addBlock(data['blockType'], str(data['content']))
             
             #label section
-            if data["name"] == "paragraph":
-                self.blocks.addBlock(data['name'], str(data['content']))
+            if data["blockType"] == "paragraph":
+                self.blocks.addBlock(data['blockType'], str(data['content']))
              
             # image section
-            if data["name"] == "image":
+            if data["blockType"] == "image":
                 pass       
-                self.blocks.addBlock(data['name'], str(data['content']))
+                self.blocks.addBlock(data['blockType'], str(data['content']))
             
             # video section
-            if data["name"] == "video":
+            if data["blockType"] == "video":
                 pass
-                self.blocks.addBlock(data['name'], str(data['content']))
+                self.blocks.addBlock(data['blockType'], str(data['content']))
 
 
         lection_name = self.dialog.content_cls.ids.name.text
@@ -359,7 +357,7 @@ class EditorScreen(MDScreen):
 
 #trida pro prohlizeci obrazovku
 class LessonsScreen(MDScreen):
-    lection_to_view = {"id": None, "name": None}
+    lection_to_view = {"id": None, "blockType": None}
 
     def __init__(self) -> None:
         super().__init__()
