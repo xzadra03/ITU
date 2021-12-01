@@ -534,11 +534,11 @@ class ViewScreen(MDScreen):
 
 
     def print_title(self):
-        self.label_lection_title = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None), line_color=(0,0,0,1), halign="center")
+        self.label_lection_title = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None), halign="left")
         self.lect_view.add_widget(self.label_lection_title)
 
     def print_paragraph(self):
-        self.label_lection_p = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None), line_color=(0,0,0,1), halign="center")
+        self.label_lection_p = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None), size=(self.width, 250), halign="left")
         self.lect_view.add_widget(self.label_lection_p)
 
     def print_image(self):
