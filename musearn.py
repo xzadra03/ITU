@@ -47,21 +47,49 @@ class Content(BoxLayout):
 
 #trida startovni obrazovky
 class StartScreen(MDScreen):
-    pass
+    login_button = None
+    logout_button = None
+
+    def login(self):
+        if self.login_button is not None:
+            self.remove_widget(self.login_button)
+        if self.logout_button is not None:
+            self.remove_widget(self.logout_button)
+
+        if LoginScreen.logged == 0:
+            self.login_button = MDRoundFlatIconButton(text= "Přihlášení", icon= "account", pos_hint= {"center_y":.96, "center_x":.85}, on_press=self.change_to_login)
+            self.add_widget(self.login_button)
+        if LoginScreen.logged == 1:
+            self.logout_button = MDRoundFlatIconButton(text= "Odhlásit se", icon= "account", pos_hint= {"center_y":.96, "center_x":.85}, on_press=self.logout)
+            self.add_widget(self.logout_button)
+
+    def change_to_login(self, obj):
+        screen_manager.current = "login_screen"
+        screen_manager.transition.duration = 0.5
+
+    def logout(self, obj):
+        LoginScreen.logged = 0
+        LoginScreen.username_input = "default"
+        self.remove_widget(self.logout_button)
+        self.login_button = MDRoundFlatIconButton(text= "Přihlášení", icon= "account", pos_hint= {"center_y":.96, "center_x":.85}, on_press=self.change_to_login)
+        self.add_widget(self.login_button)
+
 
 #trida prihlasovaci obrazovky
 class LoginScreen(MDScreen):
     log_user = None
     reg_user = None
+    user = None
     wrong_password = None
     username_input = "default"
+    logged = 0
 
     def login(self):
         LoginScreen.username_input = self.ids.username.text
         password_input = self.ids.password.text
 
         if password_input is None or LoginScreen.username_input is None:
-            return
+            pass
         if db.doesUserExist(LoginScreen.username_input) is False:
             if db.createUser(LoginScreen.username_input, password_input) is True:
                 LoginScreen.reg_user = MDLabel(text="Registrovan", font_size=30, size_hint=(1, .2), pos_hint= {'center_y':.1}, halign="center")
@@ -70,13 +98,16 @@ class LoginScreen(MDScreen):
             if db.loginUser(LoginScreen.username_input, password_input) is True:
                 LoginScreen.log_user = MDLabel(text="Prihlasen", font_size=30, size_hint=(1, .2), pos_hint= {'center_y':.1}, halign="center")
                 self.add_widget(LoginScreen.log_user)
-                user = MDLabel(text="uzivatel: " + LoginScreen.username_input, font_size=30, size_hint=(.3, .1), pos_hint= {'center_y':.9}, halign="left")
-                self.add_widget(user)
+                LoginScreen.logged = 1
+                LoginScreen.user = MDLabel(text="uzivatel: " + LoginScreen.username_input, font_size=30, size_hint=(.3, .1), pos_hint= {'center_y':.9}, halign="left")
+                self.add_widget(LoginScreen.user)
             else:
                 LoginScreen.wrong_password = MDLabel(text="Spatne heslo", font_size=30, size_hint=(1, .2), pos_hint= {'center_y':.1}, halign="center")
                 self.add_widget(LoginScreen.wrong_password)
 
     def clean(self):
+        if LoginScreen.user is not None:
+            self.remove_widget(LoginScreen.user)
         if LoginScreen.log_user is not None:
             self.remove_widget(LoginScreen.log_user)
         if LoginScreen.reg_user is not None:
@@ -93,19 +124,12 @@ class EditorScreen(MDScreen):
     index = 0
     section_list = {}
 
-    def __init__(self, **kw):
-        super().__init__(**kw)
-        if ViewScreen.edit == 1:
-            self.edit()
-
-    #editace jiz vytvorene lekce
-    def edit(self):
-        print("edituju")
-        self.add
-
 
     def save_value(self, instance, text):
-        EditorScreen.section_list[self.index - 1]['content'] = text
+        if self.index > 0:
+            EditorScreen.section_list[self.index - 1]['content'] = text
+        else:
+            EditorScreen.section_list[self.index]['content'] = text
 
     def add(self):
         if ViewScreen.edit == 1:
@@ -120,12 +144,14 @@ class EditorScreen(MDScreen):
                     EditorScreen.section_list[index] = block
                     self.edit_title = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
                     self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_title)
+                    self.edit_title.bind(text = self.save_value)
                     self.list_view.add_widget(self.edit_title)
                     self.list_view.add_widget(self.delete_button)
                 if block["blockType"] == 'paragraph':
                     EditorScreen.section_list[index] = block
                     self.edit_paragraph = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
                     self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_label)
+                    self.edit_paragraph.bind(text = self.save_value)
                     self.list_view.add_widget(self.edit_paragraph)
                     self.list_view.add_widget(self.delete_button)
 
@@ -435,11 +461,12 @@ class LessonsScreen(MDScreen):
             self.add_widget(self.scroll)
 
     def delete(self):
-        #print("mazu")
+        self.remove_widget(self.filter_value)
         self.remove_widget(self.scroll)
         self.remove_widget(self.filter_button)
         self.remove_widget(self.label_lections)
         self.remove_widget(self.my_lections)
+        #del self
 
 
     def view_lection(self, obj, name):
