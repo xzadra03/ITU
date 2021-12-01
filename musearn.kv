@@ -86,8 +86,7 @@
             size_hint: (.1, .1)
             pos_hint: {"y":.9, "x":.9}
             on_press:
-                root.manager.transition.duration = 0
-                root.manager.current = 'start_screen'
+                root.change_screen()
         MDRaisedButton:
             id: label
             text: "Label"

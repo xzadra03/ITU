@@ -16,7 +16,7 @@ from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
-from kivymd.uix.button import MDRaisedButton
+from kivymd.uix.button import MDRaisedButton, MDTextButton
 from kivymd.uix.button import MDRoundFlatIconButton
 from kivymd.uix.label import MDLabel
 from kivy.uix.textinput import TextInput
@@ -28,8 +28,8 @@ from kivy.uix.boxlayout import BoxLayout
 from kivymd.uix.list import MDList, OneLineListItem, ThreeLineListItem
 from kivy.uix.scrollview import ScrollView
 from kivymd.uix.dialog import MDDialog
-from kivy.uix.image import AsyncImage, Image
-from kivy.uix.videoplayer import VideoPlayer
+from kivy.uix.image import Image
+from kivy.uix.videoplayer import VideoPlayer, VideoPlayerPreview
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.popup import Popup
 import os
@@ -108,11 +108,74 @@ class EditorScreen(MDScreen):
         EditorScreen.section_list[self.index - 1]['content'] = text
 
     def add(self):
-        print("ahoj")
-        self.list_view = MDList()
-        self.scroll_editor = ScrollView(size_hint_y=.6, pos_hint={"x":0, "y": .2}, do_scroll_x=False, do_scroll_y=True)
-        self.scroll_editor.add_widget(self.list_view)
-        self.add_widget(self.scroll_editor)
+        if ViewScreen.edit == 1:
+            self.list_view = MDList()
+            self.scroll_editor = ScrollView(size_hint_y=.6, pos_hint={"x":0, "y": .2}, do_scroll_x=False, do_scroll_y=True)
+            self.scroll_editor.add_widget(self.list_view)
+            self.add_widget(self.scroll_editor)
+
+            index = 0
+            for block in ViewScreen.lection_to_edit["blocks"]:
+                if block["blockType"] == 'title':
+                    EditorScreen.section_list = block
+                    self.edit_title = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
+                    self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_title)
+                    self.list_view.add_widget(self.edit_title)
+                    self.list_view.add_widget(self.delete_button)
+                if block["blockType"] == 'paragraph':
+                    EditorScreen.section_list = block
+                    self.edit_paragraph = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
+                    self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_label)
+                    self.list_view.add_widget(self.edit_paragraph)
+                    self.list_view.add_widget(self.delete_button)
+
+                if block["blockType"] == 'image' or block["blockType"] == "video":
+                    EditorScreen.section_list = block
+                    #zkus najit lokalne jinak stahni z databaze
+                    if not os.path.exists(currentdir + "/images"):
+                        os.mkdir(currentdir + "/images/")
+                    
+                    file_path = currentdir + "/images/" + block["content"]
+                    if not os.path.exists(file_path):
+                        db.downloadFile(block["content"], currentdir + "/images/" + block["content"])
+    
+                    
+                    if block["blockType"] == "image":
+                        self.edit_image = Image(source=file_path, size_hint=(None, None), size=(200, 200), keep_ratio= False)
+                        self.list_view.add_widget(self.edit_image)
+                        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_image)
+                        self.list_view.add_widget(self.delete_button)
+                    else:
+                        self.edit_video = VideoPlayer(source=file_path, size_hint=(None, None), size=(200, 200))
+                        self.list_view.add_widget(self.edit_video)
+                        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_video)
+                        self.list_view.add_widget(self.delete_button)
+                
+                index += 1
+                print(str(EditorScreen.section_list))
+        else:
+            self.list_view = MDList()
+            self.scroll_editor = ScrollView(size_hint_y=.6, pos_hint={"x":0, "y": .2}, do_scroll_x=False, do_scroll_y=True)
+            self.scroll_editor.add_widget(self.list_view)
+            self.add_widget(self.scroll_editor)
+
+
+    def edit_delete_label(self, obj):
+        self.list_view.remove_widget(self.edit_paragraph)
+        self.list_view.remove_widget(self.delete_button)
+
+    def edit_delete_title(self, obj):
+        self.list_view.remove_widget(self.edit_title)
+        self.list_view.remove_widget(self.delete_button)
+
+    def edit_delete_image(self, obj):
+        self.list_view.remove_widget(self.edit_image)
+        self.list_view.remove_widget(self.delete_button)
+
+    def edit_delete_video(self, obj):
+        self.list_view.remove_widget(self.edit_video)
+        self.list_view.remove_widget(self.delete_button)
+
 
     def add_label(self):
         print("Pridej label " + str(EditorScreen.index))
@@ -160,7 +223,7 @@ class EditorScreen(MDScreen):
     def add_image(self):
         print("Pridej image")
         self.dialog_file = Popup(size_hint = (.8, .8), title='Choose file')
-        self.file_chooser = FileChooserListView(on_submit=self.choose_file_image)
+        self.file_chooser = FileChooserListView(on_submit=self.choose_file_image, path=currentdir)
         self.dialog_file.add_widget(self.file_chooser)
         self.dialog_file.open()
 
@@ -195,7 +258,7 @@ class EditorScreen(MDScreen):
     def add_video(self):
         print("Pridej video")
         self.dialog_file = Popup(size_hint = (.8, .8), title='Choose file')
-        self.file_chooser = FileChooserListView(on_submit=self.choose_file_video)
+        self.file_chooser = FileChooserListView(on_submit=self.choose_file_video, path=currentdir)
         self.dialog_file.add_widget(self.file_chooser)
         self.dialog_file.open()
 
@@ -284,6 +347,14 @@ class EditorScreen(MDScreen):
         EditorScreen.section_list = {}
         self.delete()
         screen_manager.current = "start_screen"
+
+
+    def change_screen(self):
+        if ViewScreen.edit == 1:
+            ViewScreen.edit = 0
+            screen_manager.current = "view_screen"
+        else:
+            screen_manager.current = "start_screen"
 
 
 #trida pro prohlizeci obrazovku
@@ -384,6 +455,7 @@ class ViewScreen(MDScreen):
     located = False
     button_edit = None
     content = ""
+    lection_to_edit = ""
 
     def view(self):
         self.lect_view = MDList()
@@ -393,6 +465,9 @@ class ViewScreen(MDScreen):
         i = 0
         for item in ViewScreen.lect:
             if LessonsScreen.lection_to_view["name"] == item["name"]:
+
+                #ulozim si, kdybych chtel editovat
+                ViewScreen.lection_to_edit = item
                 ViewScreen.located = True
                 LessonsScreen.lection_to_view["id"] = i
             i = i + 1
@@ -474,7 +549,6 @@ class ViewScreen(MDScreen):
         self.delete()
         ViewScreen.edit = 1
         screen_manager.current = "editor_screen"
-        EditorScreen.edit
 
 
 
