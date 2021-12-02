@@ -9,18 +9,18 @@
 
 #importy
 from functools import partial
-from logging import Manager
+#from logging import Manager
 import kivy
 kivy.require('2.0.0')
 from kivymd.app import MDApp
 from kivymd.uix.screen import MDScreen
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager
-from kivymd.uix.button import MDRaisedButton, MDTextButton
+from kivymd.uix.button import MDRaisedButton
 from kivymd.uix.button import MDRoundFlatIconButton
 from kivymd.uix.label import MDLabel
 from kivy.uix.textinput import TextInput
-from kivy.uix.checkbox import CheckBox
+#from kivy.uix.checkbox import CheckBox
 from VUT_ITU_backend.Database import *
 from VUT_ITU_backend.BlockList import *
 from VUT_ITU_backend.Constants import *
@@ -29,7 +29,7 @@ from kivymd.uix.list import MDList, OneLineListItem, ThreeLineListItem
 from kivy.uix.scrollview import ScrollView
 from kivymd.uix.dialog import MDDialog
 from kivy.uix.image import Image
-from kivy.uix.videoplayer import VideoPlayer, VideoPlayerPreview
+from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.popup import Popup
 import os
@@ -138,13 +138,13 @@ class EditorScreen(MDScreen):
                 if block["blockType"] == 'title':
                     EditorScreen.section_list[index] = block
                     self.edit_title = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
-                    self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_title)
+                    self.delete_button = MDRaisedButton(text="smazat", on_press=self.edit_delete_title)
                     self.list_view.add_widget(self.edit_title)
                     self.list_view.add_widget(self.delete_button)
                 if block["blockType"] == 'paragraph':
                     EditorScreen.section_list[index] = block
                     self.edit_paragraph = TextInput(text=block["content"], size_hint= (1, None), pos_hint= (None, None))
-                    self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_label)
+                    self.delete_button = MDRaisedButton(text="smazat", on_press=self.edit_delete_label)
                     self.list_view.add_widget(self.edit_paragraph)
                     self.list_view.add_widget(self.delete_button)
 
@@ -163,13 +163,13 @@ class EditorScreen(MDScreen):
                         self.edit_image = Image(source=file_path, size_hint=(None, None), size=(200, 200), keep_ratio= False)
                         block["content"] = file_path
                         self.list_view.add_widget(self.edit_image)
-                        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_image)
+                        self.delete_button = MDRaisedButton(text="smazat", on_press=self.edit_delete_image)
                         self.list_view.add_widget(self.delete_button)
                     else:
                         self.edit_video = VideoPlayer(source=file_path, size_hint=(None, None), size=(200, 200))
                         block["content"] = file_path
                         self.list_view.add_widget(self.edit_video)
-                        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", on_press=self.edit_delete_video)
+                        self.delete_button = MDRaisedButton(text="smazat", on_press=self.edit_delete_video)
                         self.list_view.add_widget(self.delete_button)
                 
                 index += 1
@@ -179,26 +179,25 @@ class EditorScreen(MDScreen):
             self.scroll_editor.add_widget(self.list_view)
             self.add_widget(self.scroll_editor)
 
-
     def edit_delete_label(self, obj):
+        self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.edit_paragraph)
-        self.list_view.remove_widget(self.delete_button)
-
-    def edit_delete_title(self, obj):
-        self.list_view.remove_widget(self.edit_title)
-        self.list_view.remove_widget(self.delete_button)
 
     def edit_delete_image(self, obj):
-        self.list_view.remove_widget(self.edit_image)
         self.list_view.remove_widget(self.delete_button)
+        self.list_view.remove_widget(self.edit_image)
 
     def edit_delete_video(self, obj):
-        self.list_view.remove_widget(self.edit_video)
         self.list_view.remove_widget(self.delete_button)
+        self.list_view.remove_widget(self.edit_video)
+
+    def edit_delete_title(self, obj):
+        self.list_view.remove_widget(self.delete_button)
+        self.list_view.remove_widget(self.edit_title)
 
     def add_label(self):
         self.label_input = TextInput(text = "Label" ,size_hint= (.6, .2), pos_hint= (None, None))
-        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_label)
+        self.delete_button = MDRaisedButton(text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_label)
         self.list_view.add_widget(self.label_input)
         self.list_view.add_widget(self.delete_button)
 
@@ -214,7 +213,7 @@ class EditorScreen(MDScreen):
         #zjistim si, jestli je to obrazek
         if EditorScreen.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif')):
             self.image = Image(source=EditorScreen.filename)
-            self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1), on_press=self.delete_image)
+            self.delete_button = MDRaisedButton(text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_image)
             self.list_view.add_widget(self.image)
             self.list_view.add_widget(self.delete_button)
         else:
@@ -238,7 +237,7 @@ class EditorScreen(MDScreen):
         #zjistim si, jestli je to video mp4 nebo mov
         if EditorScreen.filename.lower().endswith(('.mov', '.mp4')):
             self.video = VideoPlayer(source=EditorScreen.filename)
-            self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1), on_press=self.delete_video)
+            self.delete_button = MDRaisedButton(text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_video)
             self.list_view.add_widget(self.video)
             self.list_view.add_widget(self.delete_button)
         else:
@@ -256,11 +255,10 @@ class EditorScreen(MDScreen):
 
     def add_title(self):
         self.title_input = TextInput(text = "Title" ,size_hint= (.8, .2), pos_hint= (None, None))
-        self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_title)
+        self.delete_button = MDRaisedButton(text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_title)
         self.list_view.add_widget(self.title_input)
         self.list_view.add_widget(self.delete_button)
         EditorScreen.index = EditorScreen.index + 1
-        #print(EditorScreen.section_list)
 
     def delete_title(self, obj):
         self.list_view.remove_widget(self.delete_button)
@@ -297,7 +295,7 @@ class EditorScreen(MDScreen):
                 i -= 1
                 continue
         
-
+        #potrebuju otocit poradi
         EditorScreen.sorted_section_list = sorted(EditorScreen.section_list.items(), key=lambda x:x[0], reverse=False)
         self.dialog = MDDialog(
                 type="custom",
@@ -337,8 +335,8 @@ class EditorScreen(MDScreen):
         lection_name = self.dialog.content_cls.ids.name.text
         instrument = self.dialog.content_cls.ids.instrument.text
         difficulty = int(self.dialog.content_cls.ids.difficulty.text)
-        print(self.blocks.jsonList)
-        #db.createLection(lection_name, LoginScreen.username_input, instrument, difficulty, self.blocks.jsonList)
+        #print(self.blocks.jsonList)
+        db.createLection(lection_name, LoginScreen.username_input, instrument, difficulty, self.blocks.jsonList)
         print("Ulozeno")
         self.dialog.dismiss(force=True)
         EditorScreen.section_list = {}
