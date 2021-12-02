@@ -124,6 +124,7 @@ class EditorScreen(MDScreen):
     index = 0
     section_list = {}
     label_index = 0
+    sorted_section_list = {}
 
     def add(self):
         if ViewScreen.edit == 1:
@@ -172,7 +173,6 @@ class EditorScreen(MDScreen):
                         self.list_view.add_widget(self.delete_button)
                 
                 index += 1
-                #print(str(EditorScreen.section_list))
         else:
             self.list_view = MDList()
             self.scroll_editor = ScrollView(size_hint_y=.6, pos_hint={"x":0, "y": .2}, do_scroll_x=False, do_scroll_y=True)
@@ -197,49 +197,14 @@ class EditorScreen(MDScreen):
         self.list_view.remove_widget(self.delete_button)
 
     def add_label(self):
-        EditorScreen.section_list[self.label_index] = {}
-        EditorScreen.section_list[self.label_index]['blockType'] = "paragraph"
-        EditorScreen.section_list[self.label_index]['content'] = ""
-
         self.label_input = TextInput(text = "Label" ,size_hint= (.6, .2), pos_hint= (None, None))
         self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_label)
         self.list_view.add_widget(self.label_input)
         self.list_view.add_widget(self.delete_button)
-        self.label_index += 1
-        print(EditorScreen.section_list)
-
-
-#     import collections
-# tohle se mi bude hodit
-
-
-# def move_element(odict, thekey, newpos):
-#     odict[thekey] = odict.pop(thekey)
-#     i = 0
-#     for key, value in odict.items():
-#         if key != thekey and i >= newpos:
-#             odict[key] = odict.pop(key)
-#         i += 1
-#     return odict
-
-# queue = collections.OrderedDict()
-
-# queue["animals"] = ["cat", "dog", "fish"]
-# queue["food"] = ["cake", "cheese", "bread"]
-# queue["people"] = ["john", "henry", "mike"]
-# queue["drinks"] = ["water", "coke", "juice"]
-# queue["cars"] = ["astra", "focus", "fiesta"]
-
-# print queue
-
-# queue = move_element(queue, "people", 1)
-
-# print queue
 
     def delete_label(self, obj):
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.label_input)
-        print(EditorScreen.section_list)
 
 
     def choose_file_image(self, obj, filename, event):
@@ -252,10 +217,6 @@ class EditorScreen(MDScreen):
             self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1), on_press=self.delete_image)
             self.list_view.add_widget(self.image)
             self.list_view.add_widget(self.delete_button)
-            EditorScreen.section_list[self.index] = {}
-            EditorScreen.section_list[self.index]['blockType'] = "image"
-            EditorScreen.section_list[self.index]['content'] = EditorScreen.filename
-            EditorScreen.index = EditorScreen.index + 1
         else:
             pass
 
@@ -267,29 +228,19 @@ class EditorScreen(MDScreen):
         self.dialog_file.open()
 
     def delete_image(self, obj):
-        index_to_delete = self.list_view.children.index(obj)
-        print("mazu_label " + str(index_to_delete))
-
-        del EditorScreen.section_list[index_to_delete]
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.image)
-        #print(EditorScreen.section_list)
-
 
     def choose_file_video(self, obj, filename, event):
         EditorScreen.filename = filename[0]
         self.dialog_file.dismiss()
         
-        #zjistim si, jestli je to video mp4
-        if EditorScreen.filename.lower().endswith(('.mov')):
+        #zjistim si, jestli je to video mp4 nebo mov
+        if EditorScreen.filename.lower().endswith(('.mov', '.mp4')):
             self.video = VideoPlayer(source=EditorScreen.filename)
             self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(None, None), size_hint=(.2, .1), on_press=self.delete_video)
             self.list_view.add_widget(self.video)
             self.list_view.add_widget(self.delete_button)
-            EditorScreen.section_list[self.index] = {}
-            EditorScreen.section_list[self.index]['blockType'] = "video"
-            EditorScreen.section_list[self.index]['content'] = EditorScreen.filename
-            EditorScreen.index = EditorScreen.index + 1
         else:
             pass
 
@@ -300,20 +251,10 @@ class EditorScreen(MDScreen):
         self.dialog_file.open()
 
     def delete_video(self, obj):
-        index_to_delete = self.list_view.children.index(obj)
-        print("mazu_video " + str(index_to_delete))
-
-        del EditorScreen.section_list[index_to_delete]
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.video)
-        #print(EditorScreen.section_list)
 
     def add_title(self):
-        print("Pridej title " + str(EditorScreen.index))
-        EditorScreen.section_list[self.index] = {}
-        EditorScreen.section_list[self.index]['blockType'] = "title"
-        EditorScreen.section_list[self.index]['content'] = ""
-
         self.title_input = TextInput(text = "Title" ,size_hint= (.8, .2), pos_hint= (None, None))
         self.delete_button = MDRoundFlatIconButton(icon="delete", text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_title)
         self.list_view.add_widget(self.title_input)
@@ -322,38 +263,42 @@ class EditorScreen(MDScreen):
         #print(EditorScreen.section_list)
 
     def delete_title(self, obj):
-        index_to_delete = self.list_view.children.index(obj)
-        print("mazu_title " + str(index_to_delete))
-
-        del EditorScreen.section_list[index_to_delete]
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.title_input)
-        #print(EditorScreen.section_list)
 
     def delete(self):
         self.remove_widget(self.scroll_editor)
 
+    def delete_all(self):
+        self.list_view.clear_widgets()
+
     def save_lection_popup(self):
         leng = int(len(self.list_view.children)/2)
-        i = leng
+        i = leng - 1
 
         #data ze vstupnich poli
         for data in self.list_view.children:
             if isinstance(data, Image):
-                EditorScreen.section_list[leng - i]['content'] = data.source
+                EditorScreen.section_list[i] = {}
+                EditorScreen.section_list[i]['blockType'] = "image"
+                EditorScreen.section_list[i]['content'] = data.source
                 i -= 1
                 continue
             if isinstance(data, VideoPlayer):
-                EditorScreen.section_list[leng - i]['content'] = data.source
+                EditorScreen.section_list[i] = {}
+                EditorScreen.section_list[i]['blockType'] = "video"
+                EditorScreen.section_list[i]['content'] = data.source
                 i -= 1
                 continue
             if data.text != "smazat":
-                EditorScreen.section_list[leng - i]['content'] = data.text
+                EditorScreen.section_list[i] = {}
+                EditorScreen.section_list[i]['blockType'] = "paragraph"
+                EditorScreen.section_list[i]['content'] = data.text
                 i -= 1
                 continue
         
 
-        print(str(EditorScreen.section_list))
+        EditorScreen.sorted_section_list = sorted(EditorScreen.section_list.items(), key=lambda x:x[0], reverse=False)
         self.dialog = MDDialog(
                 type="custom",
                 content_cls=Content(),
@@ -365,13 +310,13 @@ class EditorScreen(MDScreen):
         self.dialog.open()
     
     def close_dialog(self, obj):
+        EditorScreen.section_list = {}
         self.dialog.dismiss(force=True)
 
     def save_lection(self, obj):
         self.blocks = BlockList()
 
-        for section, data in EditorScreen.section_list.items():
-            print(data)
+        for section, data in EditorScreen.sorted_section_list:
             #title section
             if data["blockType"] == "title":
                 self.blocks.addBlock(data['blockType'], str(data['content']))
@@ -381,20 +326,19 @@ class EditorScreen(MDScreen):
                 self.blocks.addBlock(data['blockType'], str(data['content']))
              
             # image section
-            if data["blockType"] == "image":
-                pass       
+            if data["blockType"] == "image":       
                 self.blocks.addBlock(data['blockType'], str(data['content']))
             
             # video section
             if data["blockType"] == "video":
-                pass
                 self.blocks.addBlock(data['blockType'], str(data['content']))
 
 
         lection_name = self.dialog.content_cls.ids.name.text
         instrument = self.dialog.content_cls.ids.instrument.text
         difficulty = int(self.dialog.content_cls.ids.difficulty.text)
-        db.createLection(lection_name, LoginScreen.username_input, instrument, difficulty, self.blocks.jsonList)
+        print(self.blocks.jsonList)
+        #db.createLection(lection_name, LoginScreen.username_input, instrument, difficulty, self.blocks.jsonList)
         print("Ulozeno")
         self.dialog.dismiss(force=True)
         EditorScreen.section_list = {}
