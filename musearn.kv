@@ -1,5 +1,14 @@
 #:kivy 2.0.0
+#_________________________________
+#|                                |
+#|    Kivy version of Musearn     |
+#|       author: Jan Zadrapa      |
+#|      project created for ITU   |
+#|         BUT FIT 11/2021        |
+#|             .kv file           |
+#|________________________________|
 
+#nastaveni zobrazeni startovni obrazovky
 <StartScreen>:
     on_enter: root.login()
     MDScreen:
@@ -28,6 +37,7 @@
             pos_hint: {'center_y':.9} 
             halign: "center"
  
+ #nastaveni login obrazovky
 <LoginScreen>:
     MDScreen:
         MDRaisedButton:
@@ -70,7 +80,7 @@
             on_press:
                 root.login()
 
-
+#nastaveni obrazovky editoru
 <EditorScreen>:
     on_enter: root.add()
     on_leave: root.delete()
@@ -130,6 +140,8 @@
             halign: "center"
             line_color: 0, 0, 0, 1
 
+
+#okno pro zobrazeni lekci
 <LessonsScreen>:
     on_enter: root.print_data()
     on_leave: root.delete()
@@ -145,6 +157,7 @@
         size_hint: (.1, .1)
         on_active: root.filter_user_checked(self.active)
 
+#obrazovka detailu lekce
 <ViewScreen>:
     on_enter: root.view()
     on_leave: root.delete()
@@ -157,7 +170,7 @@
                 root.manager.transition.duration = 0
                 root.manager.current = 'lessons_screen'
 
-
+#obsah dialogoveho okna
 <Content>:
     orientation: "vertical"
     spacing: "12dp"

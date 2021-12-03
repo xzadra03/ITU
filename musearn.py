@@ -4,12 +4,14 @@
 #|       author: Jan Zadrapa      |
 #|      project created for ITU   |
 #|         BUT FIT 11/2021        |
-#|                                |
+#|           main file            |
 #|________________________________|
 
 #importy
 from functools import partial
 #from logging import Manager
+import os
+#vsechny kivy importy
 import kivy
 kivy.require('2.0.0')
 from kivymd.app import MDApp
@@ -32,7 +34,6 @@ from kivy.uix.image import Image
 from kivy.uix.videoplayer import VideoPlayer
 from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.popup import Popup
-import os
 import inspect
 
 #inicializace databaze
@@ -42,6 +43,7 @@ screen_manager = ScreenManager()
 #nastaveni cesty k souborum
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 
+#trida obsahu vyskakovaciho okna pri ukladani lekce
 class Content(BoxLayout):
     pass
 
@@ -50,6 +52,7 @@ class StartScreen(MDScreen):
     login_button = None
     logout_button = None
 
+    #metoda zobrazeni prihlasovaciho tlacitka
     def login(self):
         if self.login_button is not None:
             self.remove_widget(self.login_button)
@@ -63,10 +66,12 @@ class StartScreen(MDScreen):
             self.logout_button = MDRoundFlatIconButton(text= "Odhlásit se", icon= "account", pos_hint= {"center_y":.96, "center_x":.85}, on_press=self.logout)
             self.add_widget(self.logout_button)
 
+    #metoda pro zmenu na login obrazovku
     def change_to_login(self, obj):
         screen_manager.current = "login_screen"
         screen_manager.transition.duration = 0.5
 
+    #metoda pro odhlaseni uzivatele
     def logout(self, obj):
         LoginScreen.logged = 0
         LoginScreen.username_input = "default"
@@ -84,6 +89,7 @@ class LoginScreen(MDScreen):
     username_input = "default"
     logged = 0
 
+    #autentizace
     def login(self):
         LoginScreen.username_input = self.ids.username.text
         password_input = self.ids.password.text
@@ -105,6 +111,7 @@ class LoginScreen(MDScreen):
                 LoginScreen.wrong_password = MDLabel(text="Spatne heslo", font_size=30, size_hint=(1, .2), pos_hint= {'center_y':.1}, halign="center")
                 self.add_widget(LoginScreen.wrong_password)
 
+    #vycisti obrazovku po opusteni stranky
     def clean(self):
         if LoginScreen.user is not None:
             self.remove_widget(LoginScreen.user)
@@ -126,6 +133,7 @@ class EditorScreen(MDScreen):
     label_index = 0
     sorted_section_list = {}
 
+    #metoda, ktera se nacte po spusteni obrazovky s editorem
     def add(self):
         if ViewScreen.edit == 1:
             self.list_view = MDList()
@@ -133,6 +141,7 @@ class EditorScreen(MDScreen):
             self.scroll_editor.add_widget(self.list_view)
             self.add_widget(self.scroll_editor)
 
+            #podle druhu bloku vykresli
             index = 0
             for block in ViewScreen.lection_to_edit["blocks"]:
                 if block["blockType"] == 'title':
@@ -179,33 +188,39 @@ class EditorScreen(MDScreen):
             self.scroll_editor.add_widget(self.list_view)
             self.add_widget(self.scroll_editor)
 
+    #smaz label v editoru
     def edit_delete_label(self, obj):
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.edit_paragraph)
 
+    #smaz obrazek v editoru
     def edit_delete_image(self, obj):
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.edit_image)
 
+    #smaz video v editoru
     def edit_delete_video(self, obj):
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.edit_video)
 
+    #smaz title v editoru
     def edit_delete_title(self, obj):
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.edit_title)
 
+    #pridej label
     def add_label(self):
         self.label_input = TextInput(text = "Label" ,size_hint= (.6, .2), pos_hint= (None, None))
         self.delete_button = MDRaisedButton(text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_label)
         self.list_view.add_widget(self.label_input)
         self.list_view.add_widget(self.delete_button)
 
+    #smaz label
     def delete_label(self, obj):
-        self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.label_input)
+        self.list_view.remove_widget(self.delete_button)
 
-
+    #vyber obrazek ze slozky
     def choose_file_image(self, obj, filename, event):
         EditorScreen.filename = filename[0]
         self.dialog_file.dismiss()
@@ -219,17 +234,19 @@ class EditorScreen(MDScreen):
         else:
             pass
 
-
+    #pridej obrazek
     def add_image(self):
         self.dialog_file = Popup(size_hint = (.8, .8), title='Choose file')
         self.file_chooser = FileChooserListView(on_submit=self.choose_file_image, path=currentdir)
         self.dialog_file.add_widget(self.file_chooser)
         self.dialog_file.open()
 
+    #smaz obrazek
     def delete_image(self, obj):
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.image)
 
+    #vyber ze slozky video
     def choose_file_video(self, obj, filename, event):
         EditorScreen.filename = filename[0]
         self.dialog_file.dismiss()
@@ -243,16 +260,19 @@ class EditorScreen(MDScreen):
         else:
             pass
 
+    #pridej video
     def add_video(self):
         self.dialog_file = Popup(size_hint = (.8, .8), title='Choose file')
         self.file_chooser = FileChooserListView(on_submit=self.choose_file_video, path=currentdir)
         self.dialog_file.add_widget(self.file_chooser)
         self.dialog_file.open()
 
+    #smaz video
     def delete_video(self, obj):
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.video)
 
+    #pridej title
     def add_title(self):
         self.title_input = TextInput(text = "Title" ,size_hint= (.8, .2), pos_hint= (None, None))
         self.delete_button = MDRaisedButton(text="smazat", pos_hint=(.8, None), size_hint=(.2, .1), on_press=self.delete_title)
@@ -260,16 +280,20 @@ class EditorScreen(MDScreen):
         self.list_view.add_widget(self.delete_button)
         EditorScreen.index = EditorScreen.index + 1
 
+    #smaz title
     def delete_title(self, obj):
         self.list_view.remove_widget(self.delete_button)
         self.list_view.remove_widget(self.title_input)
 
+    #vymaz cely editor pri prepnuti obrazovky
     def delete(self):
         self.remove_widget(self.scroll_editor)
 
+    #vymaz vsechny widgety
     def delete_all(self):
         self.list_view.clear_widgets()
 
+    #dialog pro ulozeni lekce
     def save_lection_popup(self):
         leng = int(len(self.list_view.children)/2)
         i = leng - 1
@@ -307,10 +331,12 @@ class EditorScreen(MDScreen):
             )
         self.dialog.open()
     
+    #zavreni okna dialogu
     def close_dialog(self, obj):
         EditorScreen.section_list = {}
         self.dialog.dismiss(force=True)
 
+    #uloz lekci
     def save_lection(self, obj):
         self.blocks = BlockList()
 
@@ -343,7 +369,7 @@ class EditorScreen(MDScreen):
         self.delete()
         screen_manager.current = "start_screen"
 
-
+    #zmen obrazovku
     def change_screen(self):
         if ViewScreen.edit == 1:
             ViewScreen.edit = 0
@@ -356,13 +382,14 @@ class EditorScreen(MDScreen):
 class LessonsScreen(MDScreen):
     lection_to_view = {"id": None, "blockType": None}
 
+    #init
     def __init__(self) -> None:
         super().__init__()
         self.lections = db.getLections()
         self.name="lessons_screen"
         self.filter_value=""
 
-    
+    #zobrazeni seznamu lekci
     def print_data(self):
         self.scroll = ScrollView(size_hint_y=.55, pos_hint={"x":0, "y": 0}, do_scroll_x=False, do_scroll_y=True)
         self.label_lections = MDLabel(text="Seznam lekcí", font_size=45, size_hint=(1, .2), pos_hint= {'center_y':.9}, halign="center")
@@ -408,13 +435,14 @@ class LessonsScreen(MDScreen):
             self.scroll.add_widget(self.list_view)
             self.add_widget(self.scroll)
 
+    #filtrovani mych lekci
     def filter_user_checked(self, instance):
         if instance is True:
             self.remove_widget(self.scroll)
             self.scroll.remove_widget(self.list_view)
             self.list_view = MDList()
             for item in self.lections:
-                if item['name'] == LoginScreen.username_input:
+                if item['author'] == LoginScreen.username_input:
                     self.lab = ThreeLineListItem(text= item['name'], secondary_text=item['author'], tertiary_text=item['instrument'], on_press=partial(self.view_lection, item["name"]))
                     self.list_view.add_widget(self.lab)
 
@@ -431,20 +459,20 @@ class LessonsScreen(MDScreen):
             self.scroll.add_widget(self.list_view)
             self.add_widget(self.scroll)
 
+    #smazani obsahu obrazovky
     def delete(self):
         self.remove_widget(self.filter_value)
         self.remove_widget(self.scroll)
         self.remove_widget(self.filter_button)
         self.remove_widget(self.label_lections)
         self.remove_widget(self.my_lections)
-        #del self
 
-
+    #zobraz kliknutou lekci
     def view_lection(self, obj, name):
         LessonsScreen.lection_to_view["name"] = obj
         screen_manager.current = "view_screen"
 
-
+#trida pro zobrazenou lekci
 class ViewScreen(MDScreen):
     lect = db.getLections()
     edit = 0
@@ -453,6 +481,7 @@ class ViewScreen(MDScreen):
     content = ""
     lection_to_edit = ""
 
+    #najdi v databazi spravnou lekci
     def view(self):
         self.lect_view = MDList()
         self.scroll_view = ScrollView(size_hint_y=.8, pos_hint={"x":0, "y": 0}, do_scroll_x=False, do_scroll_y=True)
@@ -473,6 +502,7 @@ class ViewScreen(MDScreen):
                 self.button_edit = MDRaisedButton(text="Editovat", pos_hint={"x": 0, "y":0.9}, on_press=self.change_to_editor)
                 self.add_widget(self.button_edit)
             
+            #nacti komponenty lekce
             for key in ViewScreen.lect:
                 if key["name"] == LessonsScreen.lection_to_view["name"]:
                     self.label_lection = MDLabel(text=self.lect[int(LessonsScreen.lection_to_view["id"])]["name"], font_size=42, pos_hint={"x": 0, "y":0.9}, size_hint=(1, .1), halign="center")
@@ -503,15 +533,17 @@ class ViewScreen(MDScreen):
                             ViewScreen.content = block["content"]
                             self.print_video()
 
-
+    #zobraz title
     def print_title(self):
-        self.label_lection_title = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None), halign="left")
+        self.label_lection_title = MDLabel(text=ViewScreen.content, size_hint=(1, None), halign="left")
         self.lect_view.add_widget(self.label_lection_title)
 
+    #zobraz odstavec
     def print_paragraph(self):
-        self.label_lection_p = MDLabel(text=ViewScreen.content, font_size=30, size_hint=(1, None), size=(self.width, 250), halign="left")
+        self.label_lection_p = MDLabel(text=ViewScreen.content, size_hint=(1, None), size=(self.width, 250), halign="left")
         self.lect_view.add_widget(self.label_lection_p)
 
+    #zobraz obrazek
     def print_image(self):
         #zkus najit lokalne jinak stahni z databaze
         if not os.path.exists(currentdir + "/images"):
@@ -523,7 +555,7 @@ class ViewScreen(MDScreen):
         self.image_lection = Image(source=file_path, size_hint=(None, None), size=(200, 200), keep_ratio= False)
         self.lect_view.add_widget(self.image_lection)
 
-
+    #zobraz video
     def print_video(self):
         if not os.path.exists(currentdir + "/images/"):
                os.mkdir(currentdir + "/images/")
@@ -534,13 +566,14 @@ class ViewScreen(MDScreen):
         self.video_lection = VideoPlayer(source=file_path, size_hint=(None, None), size=(200, 200))
         self.lect_view.add_widget(self.video_lection)
 
-
+    #smaz obrazovku
     def delete(self):
         self.remove_widget(self.scroll_view)
         self.remove_widget(self.label_lection)
         if self.button_edit is not None:
             self.remove_widget(self.button_edit)
 
+    #prepni do editacniho modu
     def change_to_editor(self, obj):
         self.delete()
         ViewScreen.edit = 1
@@ -553,6 +586,7 @@ class Musearn(MDApp):
     def build(self):
         #z nejakeho duvodu se mi to s timto radkem nacitalo dvakrat
         #Builder.load_file("musearn.kv")
+        #pridej obrazovky
         screen_manager.add_widget(StartScreen(name="start_screen"))
         screen_manager.add_widget(ViewScreen(name="view_screen"))
         screen_manager.add_widget(LoginScreen(name="login_screen"))
@@ -561,6 +595,6 @@ class Musearn(MDApp):
         screen_manager.add_widget(ls_screen)
         return screen_manager
 
-
+#spust aplikaci
 if __name__ == "__main__":
     Musearn().run()
